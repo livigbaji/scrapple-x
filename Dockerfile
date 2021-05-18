@@ -14,6 +14,7 @@ FROM node:14-alpine3.10 AS release
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
+ENV PORT=3000
 
 RUN adduser -S hawkeye
 
@@ -29,6 +30,6 @@ RUN npm install --only=production
 
 COPY --from=build /app/dist ./dist
 
-EXPOSE 3000
+EXPOSE ${PORT}
 
 CMD ["npm", "run", "start:prod"]
