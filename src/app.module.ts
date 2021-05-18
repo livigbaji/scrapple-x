@@ -8,6 +8,8 @@ import { AppResolver } from './app.resolver';
     GraphQLModule.forRoot({
       path: '/',
       autoSchemaFile: 'schema.gql',
+      playground: true,
+      introspection: true,
     }),
   ],
   providers: [AppService, AppResolver],
