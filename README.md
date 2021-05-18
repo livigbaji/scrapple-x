@@ -1,3 +1,8 @@
+# ScrapleX
+
+[![Test and Deploy](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml/badge.svg)](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml)
+
+
 ## How to Install
 
 Install NodeJS and NPM. Use this link and follow the steps for your own operating system https://nodejs.org/en/download/
