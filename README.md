@@ -26,7 +26,6 @@ $ cd scrapple-x
 $ npm install
 ```
 
-
 ## Running the app
 
 ```bash
@@ -50,7 +49,9 @@ $ docker build -t scrapplex .
 $ docker run scrapplex -p 3000:3000
 
 ```
+## Accessing GraphQL playground
 
+`http://localhost:3000/`
 
 ## Test
 

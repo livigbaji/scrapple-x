@@ -1,0 +1,14 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Website {
+  url: String!
+  title: String!
+  description: String!
+  largestImage: String!
+}
+
+type Query {
+  website(url: String!): Website!
+}
