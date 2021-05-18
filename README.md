@@ -2,6 +2,10 @@
 
 [![Test and Deploy](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml/badge.svg)](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml)
 
+# Live API
+
+https://scrapple-x.herokuapp.com/
+
 
 ## How to Install
 
