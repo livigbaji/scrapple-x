@@ -17,9 +17,9 @@ ENV NODE_ENV=${NODE_ENV}
 
 RUN adduser -S hawkeye
 
-RUN chown -R hawkeye /app
-
 WORKDIR /app
+
+RUN chown -R hawkeye /app
 
 USER hawkeye
 
