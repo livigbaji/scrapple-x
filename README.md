@@ -13,13 +13,13 @@ From your terminal or command line run
 
 ```bash
 # clone from githhub
-git clone git@github.com:bestbrain10/scrapple-x.git
+$ git clone git@github.com:bestbrain10/scrapple-x.git
 
 # move into project directory
-cd scrapple-x
+$ cd scrapple-x
 
 # install dependencies using NPM
-npm install
+$ npm install
 ```
 
 
@@ -35,6 +35,18 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## Running with docker
+
+```bash
+# build the image
+$ docker build -t scrapplex .
+
+# run the image container, mapping it to port 3000 from the container to you computer port 3000
+$ docker run scrapplex -p 3000:3000
+
+```
+
 
 ## Test
 
