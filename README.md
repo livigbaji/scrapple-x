@@ -2,9 +2,16 @@
 
 [![Test and Deploy](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml/badge.svg)](https://github.com/bestbrain10/scrapple-x/actions/workflows/pipelines.yml)
 
-# Live API
+## Live API
 
 https://scrapple-x.herokuapp.com/
+
+## Local API
+
+Unless you changed your port through environmental variable `PORT` or directly in the code, the graphql playground can be accessed via:
+
+http://localhost:3000/
+
 
 
 ## How to Install
@@ -49,10 +56,6 @@ $ docker build -t scrapplex .
 $ docker run scrapplex -p 3000:3000
 
 ```
-## Accessing GraphQL playground
-
-`http://localhost:3000/`
-
 ## Test
 
 ```bash
