@@ -31,4 +31,6 @@ COPY . .
 
 COPY --from=build /app/dist ./dist
 
+EXPOSE 3000
+
 CMD ["npm", "run", "start:prod"]
