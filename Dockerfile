@@ -12,7 +12,7 @@ RUN npm run build
 
 # release image
 
-FROM buildkite/puppeteer AS release
+FROM cypress/base AS release
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
