@@ -46,40 +46,22 @@ describe('CrawlerService', () => {
 
   describe('calculateLargestImage method', () => {
     it('returns image with the largest area', async () => {
-      const evalMock = jest.fn().mockRejectedValueOnce('imageOfAsgard');
-      const page = jest.fn().mockReturnValueOnce({ $$eval: evalMock });
-      const result = await service.getDescription(page);
+      const evalMock = jest.fn().mockResolvedValueOnce([
+        { src: 'imageOfAsgard', area: 2 },
+        { src: 'imageOfTital', area: 1 },
+      ]);
+      const page = { $$eval: evalMock };
+      const result = await service.calculateLargestImage(page);
 
       expect(result).toBe('imageOfAsgard');
     });
 
     it('returns empty string if there are no image', async () => {
-      const evalMock = jest.fn().mockRejectedValueOnce('');
-      const page = jest.fn().mockReturnValueOnce({ $$eval: evalMock });
-      const result = await service.getDescription(page);
-
-      expect(result).toBe('');
-    });
-  });
-
-  describe('calculateLargestImage method', () => {
-    it('returns empty string if there are no images on the page', async () => {
       const evalMock = jest.fn().mockRejectedValueOnce([]);
-      const page = jest.fn().mockReturnValueOnce({ $$eval: evalMock });
-      const result = await service.getDescription(page);
+      const page = { $$eval: evalMock };
+      const result = await service.calculateLargestImage(page);
 
       expect(result).toBe('');
-    });
-
-    it('returns largest image on page ordered by area if there are image', async () => {
-      const evalMock = jest.fn().mockRejectedValueOnce([
-        { src: 'bigger', area: 2 },
-        { src: 'smaller', area: 1 },
-      ]);
-      const page = jest.fn().mockReturnValueOnce({ $$eval: evalMock });
-      const result = await service.getDescription(page);
-
-      expect(result).toBe('bigger');
     });
   });
 
