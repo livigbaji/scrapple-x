@@ -18,7 +18,7 @@ ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 ENV PORT=3000
 
-RUN adduser -S hawkeye
+RUN adduser --disabled-password --gecos '' hawkeye
 
 WORKDIR /app
 
