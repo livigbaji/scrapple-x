@@ -6,6 +6,7 @@ type picType = { area: number; src: string };
 
 @Injectable()
 export class CrawlerService {
+  cacheMap = new Map<string, { data: Website; time: number }>();
   /**
    * Checks if input string is a valid URL
    * @param url web URL
@@ -20,11 +21,32 @@ export class CrawlerService {
     }
   }
 
+  hasResentCache(url: string) {
+    if (!this.cacheMap.has(url)) {
+      return null;
+    }
+
+    const { time, data } = this.cacheMap.get(url);
+    const timeElapsed = Math.floor(Date.now() - time / 1000);
+
+    if (timeElapsed / 60 > 30) {
+      return null;
+    }
+
+    return data;
+  }
+
   async getPage(url: string): Promise<Website> {
     if (!this.validateURL(url)) {
       throw new Error(
         `${url} is not a valid web address. Start you web address with http:// or https://`,
       );
+    }
+
+    const recentCache = this.hasResentCache(url);
+
+    if (recentCache) {
+      return recentCache;
     }
 
     try {
@@ -35,6 +57,11 @@ export class CrawlerService {
       const data = await this.getInfo(page, url);
 
       await browser.close();
+
+      this.cacheMap.set(url, {
+        data,
+        time: Date.now(),
+      });
 
       return data as Website;
     } catch (e) {
