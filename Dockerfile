@@ -12,25 +12,41 @@ RUN npm run build
 
 # release image
 
-FROM cypress/base AS release
+FROM alpine:edge
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-ENV PORT=3000
+# Installs latest Chromium (89) package.
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    nodejs \
+    yarn
 
-RUN adduser --disabled-password --gecos '' hawkeye
+# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-WORKDIR /app
-
-RUN chown -R hawkeye /app
-
-USER hawkeye
+RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/userns.conf
 
 COPY package*.json ./
 
 RUN npm install --only=production
 
+# Add user so we don't need --no-sandbox.
+RUN addgroup -S hawkeye && adduser -S -g hawkeye hawkeye \
+    && mkdir -p /home/hawkeye/Downloads /app \
+    && chown -R hawkeye:hawkeye /home/hawkeye \
+    && chown -R hawkeye:hawkeye /app
+
+# Run everything after as non-privileged user.
+USER hawkeye
+
 COPY --from=build /app/dist ./dist
+
+WORKDIR /app
 
 EXPOSE ${PORT}
 
