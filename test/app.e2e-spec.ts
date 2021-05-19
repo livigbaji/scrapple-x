@@ -21,16 +21,18 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ GET web URL data', () => {
+    const url = 'https://bestbrain10.github.io';
+
     const website: Website = {
-      title: 'title',
-      description: 'description',
-      url: 'mehn',
-      largestImage: 'largestImage',
+      title: 'Livinus Igbaji Oga- ifu',
+      description: 'Livnus Igbaji Oga-ifu personal portfolio',
+      url,
+      largestImage: 'https://bestbrain10.github.io/assets/img/img-profile.jpg',
     };
 
     const websiteQuery = `
       query {
-        website(url: "love.com") {
+        website(url: "${url}") {
           title
           description
           url

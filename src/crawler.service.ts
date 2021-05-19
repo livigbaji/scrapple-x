@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { Website } from './website.model';
 
-type picType = { naturalHeight: number; naturalWidth: number };
+type picType = { area: number; src: string };
 
 @Injectable()
 export class CrawlerService {
@@ -22,7 +22,9 @@ export class CrawlerService {
 
   async getPage(url: string): Promise<Website> {
     if (!this.validateURL(url)) {
-      throw new Error(`${url} is not a valid URL(web address)`);
+      throw new Error(
+        `${url} is not a valid web address. Start you web address with http:// or https://`,
+      );
     }
 
     try {
@@ -30,60 +32,73 @@ export class CrawlerService {
       const page = await browser.newPage();
       await page.goto(url);
 
-      const data = await this.getInfo(page);
+      const data = await this.getInfo(page, url);
 
       await browser.close();
 
       return data as Website;
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       throw new Error('could not fetch page');
     }
   }
 
   async getInfo(
     page,
+    url,
   ): Promise<Pick<Website, 'description' | 'title' | 'largestImage'>> {
     const title = await page.title();
-    const description = await page.$eval(
-      "head > meta[name='description']",
-      (element) => element.content,
-    );
-    const images = await page.$$eval('img', (imgs) =>
-      imgs.map((img) => ({
-        src: img.src,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-      })),
-    );
 
-    const largestImage = this.calculateLargestImage(images);
+    const description = await this.getDescription(page);
+
+    const largestImage = await this.calculateLargestImage(page);
 
     return {
       title,
-      largestImage,
+      largestImage: largestImage.startsWith('/')
+        ? `${url}${largestImage}`
+        : largestImage,
       description,
     };
   }
 
-  calculateLargestImage(images: any) {
-    // console.log(images);
-    const [largestImage] = Array.from(images)
-      .filter(
-        ({ naturalWidth, naturalHeight }) => naturalWidth && naturalHeight,
-      )
-      .sort((prev: picType, next: picType) => {
-        return (
-          next.naturalHeight * next.naturalWidth -
-          prev.naturalHeight * prev.naturalWidth
-        );
-      })
-      .map(({ src, naturalHeight, naturalWidth }) => ({
-        src,
-        naturalHeight,
-        naturalWidth,
-      }));
+  async getDescription(page) {
+    try {
+      const description = await page.$eval(
+        "head > meta[name='description']",
+        (element) => element.content,
+      );
 
-    return largestImage ? largestImage.src : '';
+      return description;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async calculateLargestImage(page) {
+    try {
+      const images = await page.$$eval(
+        'img,[style*="background-image"]',
+        (imgs) =>
+          imgs
+            .map((img) => ({
+              src: img.src || img.style.backgroundImage.slice(5).slice(0, -2),
+              area: img.offsetWidth
+                ? img.offsetWidth * img.offsetHeight
+                : img.naturalWidth * img.naturalHeight,
+            }))
+            .filter(({ area }) => area),
+      );
+
+      const [largestImage] = Array.from(images)
+        .sort((prev: picType, next: picType) => {
+          return next.area - prev.area;
+        })
+        .map(({ src, area }) => ({ src, area }));
+
+      return largestImage ? largestImage.src : '';
+    } catch (e) {
+      return '';
+    }
   }
 }
