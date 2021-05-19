@@ -41,8 +41,8 @@ RUN addgroup -S hawkeye && adduser -S -g hawkeye hawkeye \
 
 
 # Run everything after as non-privileged user.
-USER hawkeye
 RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/userns.conf
+USER hawkeye
 
 COPY --from=build /app/dist ./dist
 
