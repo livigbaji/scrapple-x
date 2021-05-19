@@ -12,7 +12,7 @@ RUN npm run build
 
 # release image
 
-FROM node:14 AS release
+FROM buildkite/puppeteer AS release
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
