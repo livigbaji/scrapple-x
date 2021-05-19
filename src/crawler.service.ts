@@ -27,9 +27,9 @@ export class CrawlerService {
     }
 
     const { time, data } = this.cacheMap.get(url);
-    const timeElapsed = Math.floor(Date.now() - time / 1000);
+    const timeElapsed = Math.floor(Math.floor((Date.now() - time) / 1000) / 60);
 
-    if (timeElapsed / 60 > 30) {
+    if (timeElapsed > 30) {
       return null;
     }
 
@@ -65,7 +65,7 @@ export class CrawlerService {
 
       return data as Website;
     } catch (e) {
-      // console.log(e);
+      console.log(e);
       throw new Error('could not fetch page');
     }
   }
