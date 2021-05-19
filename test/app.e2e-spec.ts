@@ -4,6 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { Website } from 'src/website.model';
 
+jest.setTimeout(20000);
+
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
@@ -20,7 +22,7 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/ GET web URL data', () => {
+  it('/ POST web URL data', () => {
     const url = 'https://bestbrain10.github.io';
 
     const website: Website = {
