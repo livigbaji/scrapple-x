@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { AppService } from './app.service';
+import { CrawlerService } from './crawler.service';
 import { AppResolver } from './app.resolver';
+import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 @Module({
   imports: [
@@ -10,8 +11,16 @@ import { AppResolver } from './app.resolver';
       autoSchemaFile: 'schema.gql',
       playground: true,
       introspection: true,
+      formatError: (error: GraphQLError) => {
+        console.log(error);
+        const graphQLFormattedError: GraphQLFormattedError = {
+          message:
+            error.extensions?.exception?.response?.message || error.message,
+        };
+        return graphQLFormattedError;
+      },
     }),
   ],
-  providers: [AppService, AppResolver],
+  providers: [CrawlerService, AppResolver],
 })
 export class AppModule {}

@@ -1,15 +1,21 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 
 @ObjectType()
+export class WebsiteError {
+  @Field()
+  message: string;
+}
+
+@ObjectType()
 export class Website {
   @Field()
-  url: string;
+  url?: string;
   @Field()
   title: string;
-  @Field()
+  @Field({ defaultValue: '' })
   description: string;
+  @Field({ nullable: true })
+  largestImage?: string;
   @Field()
-  largestImage: string;
-  //   @Field()
-  //   metaData: Record<string, string>;
+  metaData?: string;
 }

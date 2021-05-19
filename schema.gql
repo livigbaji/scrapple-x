@@ -6,7 +6,8 @@ type Website {
   url: String!
   title: String!
   description: String!
-  largestImage: String!
+  largestImage: String
+  metaData: String!
 }
 
 type Query {
