@@ -33,13 +33,14 @@ COPY package*.json ./
 
 RUN npm install --only=production
 
+RUN chown root:root /usr/lib/chromium/chrome-sandbox
+RUN chmod 4755 /usr/lib/chromium/chrome-sandbox
+
 # Add user so we don't need --no-sandbox.
 RUN addgroup -S hawkeye && adduser -S -g hawkeye hawkeye \
     && mkdir -p /home/hawkeye/Downloads /app \
     && chown -R hawkeye:hawkeye /home/hawkeye \
     && chown -R hawkeye:hawkeye /app
-RUN chown root:root /usr/lib/chromium/chrome-sandbox
-RUN chmod 4755 /usr/lib/chromium/chrome-sandbox
 
 # Run everything after as non-privileged user.
 USER hawkeye
