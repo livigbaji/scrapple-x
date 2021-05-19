@@ -7,7 +7,6 @@ type Website {
   title: String!
   description: String!
   largestImage: String
-  metaData: String!
 }
 
 type Query {

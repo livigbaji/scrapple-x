@@ -16,6 +16,4 @@ export class Website {
   description: string;
   @Field({ nullable: true })
   largestImage?: string;
-  @Field()
-  metaData?: string;
 }

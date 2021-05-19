@@ -33,6 +33,7 @@
     "graphql-tools": "^7.0.5",
     "jsdom": "^16.5.3",
     "lodash": "^4.17.21",
+    "puppeteer": "^9.1.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6"

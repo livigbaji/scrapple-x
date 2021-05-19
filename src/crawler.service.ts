@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import * as cheerio from 'cheerio';
-import * as axios from 'axios';
-import { pickBy } from 'lodash';
+import * as puppeteer from 'puppeteer';
 import { Website } from './website.model';
+
+type picType = { naturalHeight: number; naturalWidth: number };
 
 @Injectable()
 export class CrawlerService {
@@ -26,57 +26,64 @@ export class CrawlerService {
     }
 
     try {
-      const { data } = await axios.default.get(url, {
-        headers: {
-          'Content-Type': 'text/html',
-        },
-      });
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto(url);
 
-      return this.getInfo(data as string) as Website;
+      const data = await this.getInfo(page);
+
+      await browser.close();
+
+      return data as Website;
     } catch (e) {
       console.log(e);
       throw new Error('could not fetch page');
     }
   }
 
-  getInfo(
-    html: string,
-  ): Pick<Website, 'description' | 'metaData' | 'title' | 'largestImage'> {
-    const $ = cheerio.load(html);
-    const title = $('title').text();
-    const metaData = this.metaTagsToObject(Array.from($('meta')));
+  async getInfo(
+    page,
+  ): Promise<Pick<Website, 'description' | 'title' | 'largestImage'>> {
+    const title = await page.title();
+    const description = await page.$eval(
+      "head > meta[name='description']",
+      (element) => element.content,
+    );
+    const images = await page.$$eval('img', (imgs) =>
+      imgs.map((img) => ({
+        src: img.src,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+      })),
+    );
+
+    const largestImage = this.calculateLargestImage(images);
+
     return {
       title,
-      largestImage:
-        (JSON.parse(metaData) as Partial<{ 'og:image': string }>)['og:image'] ||
-        '',
-      description:
-        (JSON.parse(metaData) as Partial<{ description: string }>)
-          .description || '',
-      metaData: metaData,
+      largestImage,
+      description,
     };
   }
 
-  metaTagsToObject(meta: cheerio.Element[]): string {
-    const metaAttributes = meta.map(({ attribs }) => attribs);
+  calculateLargestImage(images: any) {
+    // console.log(images);
+    const [largestImage] = Array.from(images)
+      .filter(
+        ({ naturalWidth, naturalHeight }) => naturalWidth && naturalHeight,
+      )
+      .sort((prev: picType, next: picType) => {
+        return (
+          next.naturalHeight * next.naturalWidth -
+          prev.naturalHeight * prev.naturalWidth
+        );
+      })
+      .map(({ src, naturalHeight, naturalWidth }) => ({
+        src,
+        naturalHeight,
+        naturalWidth,
+      }));
 
-    return JSON.stringify(
-      metaAttributes.reduce(
-        (object, { name, content, value, property, charset }) =>
-          pickBy(
-            Object.assign(
-              {},
-              object,
-              (property || name) && {
-                [property || name]: value || content,
-              },
-              charset && {
-                charset,
-              },
-            ),
-          ),
-        {},
-      ),
-    );
+    return largestImage ? largestImage.src : '';
   }
 }
