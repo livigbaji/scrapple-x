@@ -42,7 +42,6 @@ RUN chown root:root /usr/lib/chromium/chrome-sandbox
 RUN chmod 4755 /usr/lib/chromium/chrome-sandbox
 
 # Run everything after as non-privileged user.
-RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/userns.conf
 USER hawkeye
 
 COPY --from=build /app/dist ./dist
