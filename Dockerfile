@@ -29,8 +29,6 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/userns.conf
-
 COPY package*.json ./
 
 RUN npm install --only=production
@@ -41,6 +39,8 @@ RUN addgroup -S hawkeye && adduser -S -g hawkeye hawkeye \
     && chown -R hawkeye:hawkeye /home/hawkeye \
     && chown -R hawkeye:hawkeye /app
 
+
+RUN echo 'kernel.unprivileged_userns_clone=1' > /etc/sysctl.d/userns.conf
 # Run everything after as non-privileged user.
 USER hawkeye
 
