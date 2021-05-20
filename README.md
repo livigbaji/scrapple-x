@@ -56,6 +56,20 @@ $ docker build -t scrapplex .
 $ docker run scrapplex -p 3000:3000
 
 ```
+
+## example query
+
+```gql
+    query {
+        website(url: "https://bestbrain10.github.io") {
+          title
+          description
+          url
+          largestImage
+        }
+    }
+```
+
 ## Test
 
 ```bash
