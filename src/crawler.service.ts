@@ -97,7 +97,7 @@ export class CrawlerService {
    * @returns
    */
   async getInfo(
-    page,
+    page: puppeteer.Page,
     url: string,
   ): Promise<Pick<Website, 'description' | 'title' | 'largestImage'>> {
     const title = await page.title();
@@ -120,7 +120,7 @@ export class CrawlerService {
    * @param element
    * @returns
    */
-  descriptionCallback(element: Partial<{ content: string }>): string {
+  descriptionCallback(element: HTMLMetaElement): string {
     return element.content;
   }
 
@@ -129,7 +129,7 @@ export class CrawlerService {
    * @param page
    * @returns
    */
-  async getDescription(page): Promise<string> {
+  async getDescription(page: puppeteer.Page): Promise<string> {
     try {
       const description = await page.$eval(
         "head > meta[name='description']",
@@ -147,14 +147,24 @@ export class CrawlerService {
    * @param imgs
    * @returns
    */
-  imageFilter(imgs: imageType[]): picType[] {
+  imageFilter(imgs: Array<HTMLElement | HTMLImageElement>): picType[] {
     return imgs
-      .map((img) => ({
-        src: img.src || img.style.backgroundImage.slice(5).slice(0, -2),
-        area: img.offsetWidth
-          ? img.offsetWidth * img.offsetHeight
-          : img.naturalWidth * img.naturalHeight,
-      }))
+      .map((img) => {
+        if (img.hasAttribute('src')) {
+          return {
+            src: (img as HTMLImageElement).src,
+            area:
+              (img as HTMLImageElement).naturalWidth *
+              (img as HTMLImageElement).naturalHeight,
+          };
+        } else {
+          img = img as HTMLElement;
+          return {
+            src: img.style.backgroundImage.slice(5).slice(0, -2),
+            area: img.offsetWidth * img.offsetHeight,
+          };
+        }
+      })
       .filter(({ area }) => area);
   }
 
@@ -163,7 +173,7 @@ export class CrawlerService {
    * @param page
    * @returns
    */
-  async calculateLargestImage(page): Promise<string> {
+  async calculateLargestImage(page: puppeteer.Page): Promise<string> {
     try {
       const images = await page.$$eval(
         'img,[style*="background-image"]',

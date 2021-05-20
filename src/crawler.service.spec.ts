@@ -69,7 +69,7 @@ describe('CrawlerService', () => {
 
   describe('getDescription method', () => {
     it('descriptionCallback', () => {
-      const element = { content: 'boo!!!' };
+      const element = { content: 'boo!!!' } as HTMLMetaElement;
       const result = service.descriptionCallback(element);
       expect(result).toBe('boo!!!');
     });
@@ -77,7 +77,7 @@ describe('CrawlerService', () => {
     it('returns page description off meta', async () => {
       // const mockCallback = jest.fn((o) => o.content);
       const evalMock = jest.fn().mockResolvedValue('hello');
-      const page = { $eval: evalMock };
+      const page = { $eval: evalMock } as unknown as puppeteer.Page;
       const result = await service.getDescription(page);
 
       expect(result).toBe('hello');
@@ -85,7 +85,7 @@ describe('CrawlerService', () => {
 
     it('returns empty string if no description is found', async () => {
       const evalMock = jest.fn().mockRejectedValueOnce('hello error');
-      const page = { $eval: evalMock };
+      const page = { $eval: evalMock } as unknown as puppeteer.Page;
       const result = await service.getDescription(page);
 
       expect(result).toBe('');
@@ -95,13 +95,19 @@ describe('CrawlerService', () => {
   describe('calculateLargestImage method', () => {
     it('imageFilter returns image that has area', () => {
       const result = service.imageFilter([
-        { naturalHeight: 10, naturalWidth: 30, src: 'hello' },
+        {
+          naturalHeight: 10,
+          naturalWidth: 30,
+          src: 'hello',
+          hasAttribute: () => true,
+        },
         {
           offsetHeight: 20,
           offsetWidth: 40,
           style: { backgroundImage: 'url("halo")' },
+          hasAttribute: () => false,
         },
-      ]);
+      ] as unknown[] as Array<HTMLElement | HTMLImageElement>);
       expect(result).toEqual([
         { area: 10 * 30, src: 'hello' },
         { area: 20 * 40, src: 'halo' },
@@ -112,7 +118,7 @@ describe('CrawlerService', () => {
         { src: 'imageOfAsgard', area: 2 },
         { src: 'imageOfTital', area: 1 },
       ]);
-      const page = { $$eval: evalMock };
+      const page = { $$eval: evalMock } as unknown as puppeteer.Page;
       const result = await service.calculateLargestImage(page);
 
       expect(result).toBe('imageOfAsgard');
@@ -120,7 +126,7 @@ describe('CrawlerService', () => {
 
     it('returns empty string if there are no image', async () => {
       const evalMock = jest.fn().mockRejectedValueOnce([]);
-      const page = { $$eval: evalMock };
+      const page = { $$eval: evalMock } as unknown as puppeteer.Page;
       const result = await service.calculateLargestImage(page);
 
       expect(result).toBe('');
@@ -128,7 +134,7 @@ describe('CrawlerService', () => {
 
     it('returns empty string if imageFilter returns null or undefined', async () => {
       const evalMock = jest.fn().mockResolvedValueOnce([]);
-      const page = { $$eval: evalMock };
+      const page = { $$eval: evalMock } as unknown as puppeteer.Page;
       const result = await service.calculateLargestImage(page);
 
       expect(result).toBe('');
@@ -138,7 +144,7 @@ describe('CrawlerService', () => {
   describe('getInfo method', () => {
     it('returns title, largestImage and description from page', async () => {
       const titleMock = jest.fn().mockResolvedValueOnce('I love cookies');
-      const page = { title: titleMock };
+      const page = { title: titleMock } as unknown as puppeteer.Page;
       const getDescriptionSpy = jest
         .spyOn(service, 'getDescription')
         .mockResolvedValueOnce('description');
@@ -161,7 +167,7 @@ describe('CrawlerService', () => {
 
     it('appends URL to largestImage if it is a path', async () => {
       const titleMock = jest.fn().mockResolvedValueOnce('I love cookies');
-      const page = { title: titleMock };
+      const page = { title: titleMock } as unknown as puppeteer.Page;
       const getDescriptionSpy = jest
         .spyOn(service, 'getDescription')
         .mockResolvedValueOnce('description');
