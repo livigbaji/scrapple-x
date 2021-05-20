@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { Website } from './website.model';
 
-type picType = { area: number; src: string };
+export type picType = { area: number; src: string };
+export type imageType = {
+  src?: string;
+  naturalWidth?: number;
+  naturalHeight?: number;
+  style?: { backgroundImage: string };
+  offsetWidth?: number;
+  offsetHeight?: number;
+};
 
 @Injectable()
 export class CrawlerService {
@@ -21,6 +29,11 @@ export class CrawlerService {
     }
   }
 
+  /**
+   * checks if url is present in cache for not more than 30 minutes
+   * @param url
+   * @returns
+   */
   hasResentCache(url: string) {
     if (!this.cacheMap.has(url)) {
       return null;
@@ -36,6 +49,11 @@ export class CrawlerService {
     return data;
   }
 
+  /**
+   * fetches a page and returns its largest image, description and title
+   * @param url
+   * @returns
+   */
   async getPage(url: string): Promise<Website> {
     if (!this.validateURL(url)) {
       throw new Error(
@@ -67,14 +85,20 @@ export class CrawlerService {
 
       return data as Website;
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       throw new Error('could not fetch page');
     }
   }
 
+  /**
+   * gets a webpage description, title and largest image
+   * @param page
+   * @param url
+   * @returns
+   */
   async getInfo(
     page,
-    url,
+    url: string,
   ): Promise<Pick<Website, 'description' | 'title' | 'largestImage'>> {
     const title = await page.title();
 
@@ -91,11 +115,25 @@ export class CrawlerService {
     };
   }
 
-  async getDescription(page) {
+  /**
+   * returns the content from a meta element
+   * @param element
+   * @returns
+   */
+  descriptionCallback(element: Partial<{ content: string }>): string {
+    return element.content;
+  }
+
+  /**
+   * gets the meta description of a page
+   * @param page
+   * @returns
+   */
+  async getDescription(page): Promise<string> {
     try {
       const description = await page.$eval(
         "head > meta[name='description']",
-        (element) => element.content,
+        this.descriptionCallback,
       );
 
       return description;
@@ -104,19 +142,32 @@ export class CrawlerService {
     }
   }
 
-  async calculateLargestImage(page) {
+  /**
+   * filter images to return the images with an area
+   * @param imgs
+   * @returns
+   */
+  imageFilter(imgs: imageType[]): picType[] {
+    return imgs
+      .map((img) => ({
+        src: img.src || img.style.backgroundImage.slice(5).slice(0, -2),
+        area: img.offsetWidth
+          ? img.offsetWidth * img.offsetHeight
+          : img.naturalWidth * img.naturalHeight,
+      }))
+      .filter(({ area }) => area);
+  }
+
+  /**
+   * calculates the largest image on page using their areas
+   * @param page
+   * @returns
+   */
+  async calculateLargestImage(page): Promise<string> {
     try {
       const images = await page.$$eval(
         'img,[style*="background-image"]',
-        (imgs) =>
-          imgs
-            .map((img) => ({
-              src: img.src || img.style.backgroundImage.slice(5).slice(0, -2),
-              area: img.offsetWidth
-                ? img.offsetWidth * img.offsetHeight
-                : img.naturalWidth * img.naturalHeight,
-            }))
-            .filter(({ area }) => area),
+        this.imageFilter,
       );
 
       const [largestImage] = Array.from(images)

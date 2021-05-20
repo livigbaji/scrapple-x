@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CrawlerService } from './crawler.service';
 import * as puppeteer from 'puppeteer';
-// jest.mock('puppeteer');
 
 describe('CrawlerService', () => {
   let service: CrawlerService;
@@ -26,9 +25,58 @@ describe('CrawlerService', () => {
     });
   });
 
+  describe('hasResentCache', () => {
+    it('returns null if url is not in cache', () => {
+      const results = service.hasResentCache('nonexistent');
+      expect(results).toBe(null);
+    });
+
+    it('returns null if cache is older than 30 minutes', () => {
+      const moreThan30MinutesAgo = Date.now() - 1000 * 60 * 32;
+      service.cacheMap.set('legiturl', {
+        data: {
+          title: 'doesnt matter',
+          description: 'no one cares',
+          largestImage: 'boo',
+          url: 'yeay',
+        },
+        time: moreThan30MinutesAgo,
+      });
+      const results = service.hasResentCache('legiturl');
+      expect(results).toBe(null);
+    });
+
+    it('returns website if cache is not older than 30 minutes', () => {
+      const lessThan30MinutesAgo = Date.now() - 1000 * 60 * 15;
+      service.cacheMap.set('legiturlwithsauce', {
+        data: {
+          title: 'doesnt matter',
+          description: 'no one cares',
+          largestImage: 'boo',
+          url: 'yeay',
+        },
+        time: lessThan30MinutesAgo,
+      });
+      const results = service.hasResentCache('legiturlwithsauce');
+      expect(results).toEqual({
+        title: 'doesnt matter',
+        description: 'no one cares',
+        largestImage: 'boo',
+        url: 'yeay',
+      });
+    });
+  });
+
   describe('getDescription method', () => {
+    it('descriptionCallback', () => {
+      const element = { content: 'boo!!!' };
+      const result = service.descriptionCallback(element);
+      expect(result).toBe('boo!!!');
+    });
+
     it('returns page description off meta', async () => {
-      const evalMock = jest.fn().mockResolvedValueOnce('hello');
+      // const mockCallback = jest.fn((o) => o.content);
+      const evalMock = jest.fn().mockResolvedValue('hello');
       const page = { $eval: evalMock };
       const result = await service.getDescription(page);
 
@@ -45,6 +93,20 @@ describe('CrawlerService', () => {
   });
 
   describe('calculateLargestImage method', () => {
+    it('imageFilter returns image that has area', () => {
+      const result = service.imageFilter([
+        { naturalHeight: 10, naturalWidth: 30, src: 'hello' },
+        {
+          offsetHeight: 20,
+          offsetWidth: 40,
+          style: { backgroundImage: 'url("halo")' },
+        },
+      ]);
+      expect(result).toEqual([
+        { area: 10 * 30, src: 'hello' },
+        { area: 20 * 40, src: 'halo' },
+      ]);
+    });
     it('returns image with the largest area', async () => {
       const evalMock = jest.fn().mockResolvedValueOnce([
         { src: 'imageOfAsgard', area: 2 },
@@ -58,6 +120,14 @@ describe('CrawlerService', () => {
 
     it('returns empty string if there are no image', async () => {
       const evalMock = jest.fn().mockRejectedValueOnce([]);
+      const page = { $$eval: evalMock };
+      const result = await service.calculateLargestImage(page);
+
+      expect(result).toBe('');
+    });
+
+    it('returns empty string if imageFilter returns null or undefined', async () => {
+      const evalMock = jest.fn().mockResolvedValueOnce([]);
       const page = { $$eval: evalMock };
       const result = await service.calculateLargestImage(page);
 
@@ -114,6 +184,31 @@ describe('CrawlerService', () => {
   });
 
   describe('getPage method', () => {
+    it('returns cached data if not null', async () => {
+      const url = 'randokpako';
+
+      const validateSpy = jest
+        .spyOn(service, 'validateURL')
+        .mockReturnValueOnce(true);
+
+      const cacheSpy = jest
+        .spyOn(service, 'hasResentCache')
+        .mockReturnValueOnce({
+          title: 'I love cookies',
+          description: 'description',
+          largestImage: 'hello/largest.image',
+        });
+
+      const results = await service.getPage(url);
+      expect(results).toEqual({
+        title: 'I love cookies',
+        description: 'description',
+        largestImage: 'hello/largest.image',
+      });
+      expect(cacheSpy).toBeCalledWith(url);
+      expect(validateSpy).toBeCalledWith(url);
+    });
+
     it('throws error if URL is invalid', async () => {
       const url = 'randokpako';
 
