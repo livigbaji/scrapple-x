@@ -20,6 +20,8 @@ Install NodeJS and NPM. Use this link and follow the steps for your own operatin
 
 Install Git from https://git-scm.com/downloads
 
+Install Docker from https://docs.docker.com/desktop/
+
 From your terminal or command line run
 
 ```bash
